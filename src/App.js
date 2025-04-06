@@ -157,11 +157,36 @@ function App() {
   }, [isDragging, dragOffset]);
 
   return (
-    <div style={{ width: '100%', height: '100vh' }}>
+    <div style={{ 
+      width: '100%', 
+      height: '100vh',
+      overflow: 'hidden',
+      position: 'fixed'
+    }}>
       <iframe
         src="https://f16878.vip/home/register?id=704131509&currency=VND"
-        style={{ width: '100%', height: '100%', border: 'none' }}
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          border: 'none',
+          overflow: 'hidden',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          touchAction: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitUserDrag: 'none',
+          WebkitTapHighlightColor: 'transparent'
+        }}
         title="F168 Frame"
+        scrolling="no"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
       />
       
       {isMinimized ? (
@@ -186,8 +211,6 @@ function App() {
             style={{ 
               width: '60px', 
               height: '60px', 
-              borderRadius: '50%',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
               cursor: isDragging ? 'grabbing' : 'grab',
               WebkitTapHighlightColor: 'transparent',
               userSelect: 'none'
@@ -283,7 +306,7 @@ function App() {
                   <Box display="flex" alignItems="center" mb={1}>
                     <PhoneIcon style={{ color: '#1976d2', marginRight: '8px' }} />
                     <Typography variant="body2" style={{ color: '#666' }}>
-                      Số điện thoại/Zalo
+                      Số điện thoại Telegram/Zalo
                     </Typography>
                   </Box>
                   <TextField

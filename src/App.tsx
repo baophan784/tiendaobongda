@@ -65,7 +65,7 @@ function App() {
             />
             <TextField
               fullWidth
-              label="Số điện thoại/Zalo"
+              label="Số điện thoại Telegram/Zalo"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               margin="normal"
