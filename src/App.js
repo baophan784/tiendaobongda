@@ -182,7 +182,12 @@ function App() {
           touchAction: 'none',
           WebkitTouchCallout: 'none',
           WebkitUserDrag: 'none',
-          WebkitTapHighlightColor: 'transparent'
+          WebkitTapHighlightColor: 'transparent',
+          WebkitTextSizeAdjust: 'none',
+          textSizeAdjust: 'none',
+          fontSizeAdjust: 'none',
+          WebkitFontSmoothing: 'antialiased',
+          MozOsxFontSmoothing: 'grayscale'
         }}
         title="F168 Frame"
         scrolling="no"
