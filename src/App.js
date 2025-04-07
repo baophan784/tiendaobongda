@@ -20,6 +20,7 @@ function App() {
   const draggableRef = useRef(null);
   const [touchStartTime, setTouchStartTime] = useState(0);
   const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 });
+  const iframeRef = useRef(null);
 
   const getRandomResult = () => {
     const sides = ['Trái', 'Phải', 'Giữa'];
@@ -156,6 +157,164 @@ function App() {
     };
   }, [isDragging, dragOffset]);
 
+  useEffect(() => {
+    const handleIframeLoad = () => {
+      try {
+        const iframe = iframeRef.current;
+        if (iframe && iframe.contentWindow && iframe.contentDocument) {
+          const iframeWindow = iframe.contentWindow;
+          const iframeDocument = iframe.contentDocument;
+
+          // Xử lý tất cả các liên kết trong iframe
+          try {
+            const links = iframeDocument.querySelectorAll('a');
+            links.forEach(link => {
+              link.setAttribute('target', '_self');
+            });
+          } catch (e) {
+            console.warn("Không thể truy cập nội dung iframe do chính sách CORS.");
+          }
+
+          // 1. Ghi đè document.createElement để kiểm soát tất cả các thẻ a mới
+          const originalCreateElement = iframeDocument.createElement;
+          iframeDocument.createElement = function(tagName) {
+            const element = originalCreateElement.call(this, tagName);
+            if (tagName.toLowerCase() === 'a') {
+              element.setAttribute('target', '_self');
+            }
+            return element;
+          };
+
+          // 2. Xử lý tất cả các liên kết hiện có
+          const links = iframeDocument.querySelectorAll('a');
+          links.forEach(link => {
+            link.setAttribute('target', '_self');
+          });
+
+          // 3. Ghi đè window.open
+          iframeWindow.open = function(url) {
+            if (url) {
+              window.parent.postMessage({ 
+                type: 'navigate', 
+                url: url 
+              }, '*');
+            }
+            return null;
+          };
+
+          // 4. Ghi đè window.location
+          const originalLocation = iframeWindow.location;
+          Object.defineProperty(iframeWindow, 'location', {
+            get() {
+              return originalLocation;
+            },
+            set(value) {
+              const url = typeof value === 'string' ? value : value.href;
+              window.parent.postMessage({ 
+                type: 'navigate', 
+                url: url 
+              }, '*');
+            }
+          });
+
+          // 5. Chặn tất cả các sự kiện có thể mở tab mới
+          const preventNewTab = (e) => {
+            const target = e.target;
+            if (target.tagName === 'A' && target.href) {
+              e.preventDefault();
+              window.parent.postMessage({ 
+                type: 'navigate', 
+                url: target.href 
+              }, '*');
+            }
+          };
+
+          // 6. Thêm event listeners cho tất cả các sự kiện có thể
+          ['click', 'mousedown', 'mouseup', 'keydown', 'contextmenu', 'touchstart', 'touchend'].forEach(eventType => {
+            iframeDocument.addEventListener(eventType, preventNewTab, true);
+          });
+
+          // 7. Xử lý form submissions
+          iframeDocument.addEventListener('submit', (e) => {
+            const form = e.target;
+            if (form.tagName === 'FORM') {
+              e.preventDefault();
+              const action = form.action || iframeWindow.location.href;
+              const method = (form.method || 'GET').toUpperCase();
+
+              if (method === 'GET') {
+                window.parent.postMessage({ 
+                  type: 'navigate', 
+                  url: action 
+                }, '*');
+              } else {
+                console.warn('Form POST not supported automatically.');
+              }
+            }
+          }, true);
+
+          // 8. Sử dụng MutationObserver để theo dõi các thay đổi DOM
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach((node) => {
+                  if (node.nodeName === 'A') {
+                    node.setAttribute('target', '_self');
+                    node.setAttribute('rel', 'noopener noreferrer');
+                  } else if (node.querySelectorAll) {
+                    const newLinks = node.querySelectorAll('a');
+                    newLinks.forEach(link => {
+                      link.setAttribute('target', '_self');
+                      link.setAttribute('rel', 'noopener noreferrer');
+                    });
+                  }
+                });
+              }
+            });
+          });
+
+          observer.observe(iframeDocument.body, {
+            childList: true,
+            subtree: true
+          });
+
+          // 9. Cleanup
+          iframe.addEventListener('unload', () => {
+            observer.disconnect();
+            ['click', 'mousedown', 'mouseup', 'keydown', 'contextmenu', 'touchstart', 'touchend'].forEach(eventType => {
+              iframeDocument.removeEventListener(eventType, preventNewTab, true);
+            });
+          });
+        }
+      } catch (error) {
+        console.error('Error handling iframe events:', error);
+      }
+    };
+
+    const handleMessage = (event) => {
+      if (event.data && event.data.type === 'navigate') {
+        const iframe = iframeRef.current;
+        if (iframe) {
+          const { url } = event.data;
+          iframe.src = url;
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    if (iframeRef.current) {
+      iframeRef.current.addEventListener('load', handleIframeLoad);
+    }
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      if (iframeRef.current) {
+        iframeRef.current.removeEventListener('load', handleIframeLoad);
+      }
+    };
+  }, []);
+
   return (
     <div style={{ 
       width: '100%', 
@@ -164,6 +323,7 @@ function App() {
       position: 'fixed'
     }}>
       <iframe
+        ref={iframeRef}
         src="https://f16878.vip/home/register?id=704131509&currency=VND"
         style={{ 
           width: '100%', 
@@ -191,7 +351,7 @@ function App() {
         }}
         title="F168 Frame"
         scrolling="no"
-        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
       />
       
       {isMinimized ? (
