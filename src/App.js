@@ -14,10 +14,12 @@ function App() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [result, setResult] = useState('');
+  const [countdown, setCountdown] = useState(10);
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const draggableRef = useRef(null);
+  const avatarRef = useRef(null);
+  const resultRef = useRef(null);
   const [touchStartTime, setTouchStartTime] = useState(0);
   const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 });
   const iframeRef = useRef(null);
@@ -31,19 +33,30 @@ function App() {
 
   useEffect(() => {
     let interval;
+    let countdownInterval;
     if (isSubmitted && type === 1) {
       // Cập nhật kết quả ngay lập tức
       setResult(getRandomResult());
-      
+      setCountdown(10);
+
       // Thiết lập interval để cập nhật mỗi 10 giây
       interval = setInterval(() => {
         setResult(getRandomResult());
+        setCountdown(10);
       }, 10000);
+
+      // Thiết lập interval cho countdown
+      countdownInterval = setInterval(() => {
+        setCountdown(prev => (prev > 0 ? prev - 1 : 10));
+      }, 1000);
     }
 
     return () => {
       if (interval) {
         clearInterval(interval);
+      }
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
       }
     };
   }, [isSubmitted, type]);
@@ -75,12 +88,13 @@ function App() {
   };
 
   const handleMouseDown = (e) => {
-    if (e.target === draggableRef.current || 
+    const targetRef = e.target.closest('.minimized-avatar') ? avatarRef : resultRef;
+    if (e.target === targetRef.current || 
         (e.target.closest('.draggable-area') && !e.target.closest('.minimize-button')) ||
         e.target.closest('.minimized-avatar')) {
       e.preventDefault();
       setIsDragging(true);
-      const rect = draggableRef.current.getBoundingClientRect();
+      const rect = targetRef.current.getBoundingClientRect();
       const clientX = e.clientX || e.touches[0].clientX;
       const clientY = e.clientY || e.touches[0].clientY;
       setDragOffset({
@@ -210,41 +224,43 @@ function App() {
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
       />
       
-      {isMinimized ? (
-        <Box
-          ref={draggableRef}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleMouseDown}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            position: 'fixed',
-            left: `${position.x}px`,
-            top: `${position.y}px`,
-            zIndex: 1000,
+      {/* Avatar Component */}
+      <Box
+        ref={avatarRef}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleMouseDown}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          position: 'fixed',
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          zIndex: 1000,
+          cursor: isDragging ? 'grabbing' : 'grab',
+          touchAction: 'none'
+        }}
+      >
+        <img
+          className="minimized-avatar"
+          src="/icon.png"
+          alt="Avatar"
+          style={{ 
+            width: '60px', 
+            height: '60px', 
             cursor: isDragging ? 'grabbing' : 'grab',
-            touchAction: 'none'
+            WebkitTapHighlightColor: 'transparent',
+            userSelect: 'none'
           }}
-        >
-          <img
-            className="minimized-avatar"
-            src="/icon.png"
-            alt="Avatar"
-            style={{ 
-              width: '60px', 
-              height: '60px', 
-              cursor: isDragging ? 'grabbing' : 'grab',
-              WebkitTapHighlightColor: 'transparent',
-              userSelect: 'none'
-            }}
-            onClick={() => !isDragging && setIsMinimized(false)}
-          />
-        </Box>
-      ) : (
+          onClick={() => !isDragging && setIsMinimized(false)}
+        />
+      </Box>
+
+      {/* Result Component */}
+      {!isMinimized && (
         <div
-          ref={draggableRef}
+          ref={resultRef}
           style={{
             position: 'fixed',
-            left: `${position.x}px`,
+            left: `${position.x + 70}px`, // Offset to the right of the avatar
             top: `${position.y}px`,
             zIndex: 1000
           }}
@@ -364,26 +380,16 @@ function App() {
               </form>
             ) : (
               <Box>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <Box mr={2}>
-                    <img
-                      src="/icon.png"
-                      alt="Avatar"
-                      style={{ 
-                        width: '60px', 
-                        height: '60px', 
-                        borderRadius: '50%' 
-                      }}
-                    />
-                  </Box>
-                  <Box flex={1}>
-                    <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-                      {type === 0
-                        ? "Vui lòng nạp tiền để kích hoạt robot"
-                        : `Kết quả: ${result}`}
-                    </Typography>
-                  </Box>
-                </Box>
+                <Typography variant="body1" style={{ fontWeight: 'bold', marginBottom: '10px' }}>
+                  {type === 0
+                    ? "Vui lòng nạp tiền để kích hoạt robot"
+                    : `Kết quả: ${result}`}
+                </Typography>
+                {type === 1 && (
+                  <Typography variant="body2" style={{ color: '#666', marginBottom: '10px' }}>
+                    Đợi {countdown} giây phân tích
+                  </Typography>
+                )}
                 <Button
                   variant="contained"
                   color="secondary"
