@@ -23,7 +23,7 @@ function App() {
   const [touchStartTime, setTouchStartTime] = useState(0);
   const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 });
   const iframeRef = useRef(null);
-  const [iframeSrc, setIframeSrc] = useState("https://f16878.vip/home/register?id=704131509&currency=VND");
+  const [iframeSrc, setIframeSrc] = useState("https://m.f16878.vip/?id=616801259&currency=VND&type=2");
 
   const getRandomResult = () => {
     const sides = ['Trái', 'Phải', 'Giữa'];
