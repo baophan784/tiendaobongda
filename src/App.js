@@ -382,7 +382,7 @@ function App() {
               <Box>
                 <Typography variant="body1" style={{ fontWeight: 'bold', marginBottom: '10px' }}>
                   {type === 0
-                    ? "Vui lòng nạp tiền để kích hoạt robot"
+                    ? "Không để đọc kết quả do số dư tài khoản F168 < 10.000VND"
                     : `Kết quả: ${result}`}
                 </Typography>
                 {type === 1 && (
