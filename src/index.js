@@ -2,9 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import Admin from './Admin';
 import reportWebVitals from './reportWebVitals';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 const theme = createTheme({
   palette: {
@@ -22,7 +24,12 @@ root.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <App />
+      <Router>
+        <Routes>
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/" element={<App />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   </React.StrictMode>
 );
