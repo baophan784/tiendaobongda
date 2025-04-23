@@ -32,34 +32,57 @@ function App() {
   };
 
   useEffect(() => {
-    let interval;
-    let countdownInterval;
-    if (isSubmitted && type === 1) {
-      // Cập nhật kết quả ngay lập tức
-      setResult(getRandomResult());
-      setCountdown(10);
+  let interval;
+  let countdownInterval;
+  let analyzingInterval;
+  if (isSubmitted && type === 1) {
+    let analyzingDots = 0;
+    
+    setResult('Đang phân tích');
+    setCountdown(10);
 
-      // Thiết lập interval để cập nhật mỗi 10 giây
-      interval = setInterval(() => {
-        setResult(getRandomResult());
-        setCountdown(10);
-      }, 10000);
+    // Hiệu ứng "Đang phân tích..."
+    analyzingInterval = setInterval(() => {
+      analyzingDots = (analyzingDots + 1) % 4;
+      setResult('Đang phân tích' + '.'.repeat(analyzingDots));
+    }, 400);
 
-      // Thiết lập interval cho countdown
-      countdownInterval = setInterval(() => {
-        setCountdown(prev => (prev > 0 ? prev - 1 : 10));
-      }, 1000);
-    }
+    // Sau 3 giây thì random kết quả
+    setTimeout(() => {
+      clearInterval(analyzingInterval);
+      const newResult = getRandomResult();
+      setResult(newResult);
+    }, 3000);
 
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-      }
-    };
-  }, [isSubmitted, type]);
+    // Thiết lập countdown 10s
+    countdownInterval = setInterval(() => {
+      setCountdown(prev => (prev > 0 ? prev - 1 : 10));
+    }, 1000);
+
+    // Thiết lập 10s mỗi lần random mới
+    interval = setInterval(() => {
+      // Bắt đầu lại hiệu ứng
+      setResult('Đang phân tích');
+      analyzingDots = 0;
+      analyzingInterval = setInterval(() => {
+        analyzingDots = (analyzingDots + 1) % 4;
+        setResult('Đang phân tích' + '.'.repeat(analyzingDots));
+      }, 400);
+
+      setTimeout(() => {
+        clearInterval(analyzingInterval);
+        const newResult = getRandomResult();
+        setResult(newResult);
+      }, 3000);
+    }, 10000);
+  }
+
+  return () => {
+    clearInterval(interval);
+    clearInterval(countdownInterval);
+    clearInterval(analyzingInterval);
+  };
+}, [isSubmitted, type]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
