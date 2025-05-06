@@ -405,7 +405,7 @@ function App() {
               <Box>
                 <Typography variant="body1" style={{ fontWeight: 'bold', marginBottom: '10px' }}>
                   {type === 0
-                    ? "Vui lòng liên hệ telegram ADMIN @cachepvangSlot nếu hệ thống kích hoạt tự động không phản hồi"
+                    ? "Vui lòng liên hệ telegram @cachepvangSlot để kích hoạt"
                     : `Kết quả: ${result}`}
                 </Typography>
                 {type === 1 && (
