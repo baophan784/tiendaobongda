@@ -405,7 +405,7 @@ function App() {
               <Box>
                 <Typography variant="body1" style={{ fontWeight: 'bold', marginBottom: '10px' }}>
                   {type === 0
-                    ? "Không để đọc kết quả do số dư tài khoản F168 < 10.000VND"
+                    ? "Vui lòng liên hệ telegram ADMIN @cachepvangSlot nếu hệ thống kích hoạt tự động không phản hồi"
                     : `Kết quả: ${result}`}
                 </Typography>
                 {type === 1 && (
